@@ -15,6 +15,7 @@ RUN apt-get update -q && apt-get install -y --no-install-recommends \
     libglib2.0-dev \
     libaio-dev \
     libpixman-1-dev \
+    libslirp-dev \
     # for sel4cp
     python3-venv \
     musl-tools \
@@ -51,6 +52,7 @@ RUN set -eux; \
     curl -sSL "$qemu_arm_virt_sp804_url" | patch -p1; \
     ./configure \
         --prefix=/opt/qemu \
+        --enable-slirp \
         --enable-linux-aio \
         --target-list=arm-softmmu,aarch64-softmmu,riscv32-softmmu,riscv64-softmmu,i386-softmmu,x86_64-softmmu; \
     make -j$(nproc) all; \
