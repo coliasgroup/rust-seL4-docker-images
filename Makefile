@@ -4,10 +4,19 @@ TAG ?= $(id)
 
 SRC ?= https://github.com/coliasgroup/rust-seL4.git\#HEAD
 
+mount_src ?=
+
 image_tag := $(TAG)
 container_name := $(id)
 
-src_context := $(SRC)
+context_src := $(SRC)
+mount_src := $(mount_src)
+
+ifneq ($(mount_src),)
+mount_arg := \
+	--mount type=bind,src=$(abspath $(mount_src)),dst=/work \
+	--workdir /work
+endif
 
 .PHONY: none
 none:
@@ -17,14 +26,13 @@ build:
 	docker buildx build \
 		-t $(image_tag) \
 		-f Dockerfile \
-		--build-context src=$(src_context) \
+		--build-context src=$(context_src) \
 		context
 
 .PHONY: run
 run: build
 	docker run --rm \
 		--name $(container_name) \
-		--mount type=bind,src=$(abspath $(src_context)),dst=/work \
-		--workdir /work \
+		$(mount_arg) \
 		-it $(image_tag) \
 		bash
