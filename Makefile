@@ -4,13 +4,13 @@ TAG ?= $(id)
 
 SRC ?= https://github.com/coliasgroup/rust-seL4.git\#HEAD
 
-mount_src ?=
+MOUNT_SRC ?=
 
 image_tag := $(TAG)
 container_name := $(id)
 
 context_src := $(SRC)
-mount_src := $(mount_src)
+mount_src := $(MOUNT_SRC)
 
 ifneq ($(mount_src),)
 mount_arg := \
