@@ -16,7 +16,7 @@ RUN apt-get update -q && apt-get install -y --no-install-recommends \
     libaio-dev \
     libpixman-1-dev \
     libslirp-dev \
-    # for sel4cp
+    # for microkit
     python3-venv \
     musl-tools \
     pandoc \
@@ -62,38 +62,38 @@ RUN set -eux; \
 
 ENV PATH=/opt/qemu/bin:$PATH
 
-ENV SEL4CP_SDK_VERSION=1.2.6
+ENV MICROKIT_SDK_VERSION=1.2.6
 
-# branch: rust-seL4
+# branch: rust
 RUN git clone \
-        https://github.com/coliasgroup/sel4cp.git \
-        --branch keep/54c22948cd0fde4035dde293fbe572ca \
+        https://github.com/coliasgroup/microkit.git \
+        --branch keep/be3c2149f68b17206d9e03e8b038553c \
         --config advice.detachedHead=false
 
-# branch: rust-sel4cp
+# branch: rust-microkit
 RUN git clone \
         https://github.com/coliasgroup/seL4.git \
         --branch keep/fc80c9ad05d33e77a6b850dae8eb4b83 \
         --config advice.detachedHead=false \
-        sel4cp/seL4
+        microkit/seL4
 
 RUN set -eux; \
-    cd sel4cp; \
+    cd microkit; \
     python3.9 -m venv pyenv; \
     ./pyenv/bin/pip install --upgrade pip setuptools wheel; \
     ./pyenv/bin/pip install -r requirements.txt; \
     ./pyenv/bin/pip install sel4-deps; \
     ./pyenv/bin/python3 build_sdk.py --sel4 ./seL4; \
-    chmod a+rX release/sel4cp-sdk-$SEL4CP_SDK_VERSION/bin/sel4cp; \
-    mkdir /opt/sel4cp; \
-    mv release/sel4cp-sdk-$SEL4CP_SDK_VERSION /opt/sel4cp; \
+    chmod a+rX release/microkit-sdk-$MICROKIT_SDK_VERSION/bin/microkit; \
+    mkdir /opt/microkit; \
+    mv release/microkit-sdk-$MICROKIT_SDK_VERSION /opt/microkit; \
     rm -rf $HOME/.cache/pyoxidizer; \
     cd ..; \
-    rm -rf sel4cp;
+    rm -rf microkit;
 
-ENV SEL4CP_SDK=/opt/sel4cp/sel4cp-sdk-$SEL4CP_SDK_VERSION
+ENV MICROKIT_SDK=/opt/microkit/microkit-sdk-$MICROKIT_SDK_VERSION
 
-ENV PATH=$SEL4CP_SDK/bin:$PATH
+ENV PATH=$MICROKIT_SDK/bin:$PATH
 
 # branch: coliasgroup
 RUN git clone \
@@ -119,17 +119,17 @@ RUN git clone \
         --config advice.detachedHead=false
 
 RUN --mount=from=src,source=rust-toolchain.toml,target=/mnt/rust-toolchain.toml \
-    install -D -t rust-seL4 /mnt/rust-toolchain.toml
+    install -D -t rust-sel4 /mnt/rust-toolchain.toml
 
 RUN --mount=from=src,source=support/targets,target=/mnt/targets \
-    install -D -t rust-seL4/targets /mnt/targets/*.json
+    install -D -t rust-sel4/targets /mnt/targets/*.json
 
 RUN --mount=source=generate_configs.py,target=generate_configs.py \
-    python3 generate_configs.py --out-dir rust-seL4/configs
+    python3 generate_configs.py --out-dir rust-sel4/configs
 
 RUN --mount=source=build_kernels.py,target=build_kernels.py \
     python3 build_kernels.py \
-        --tree rust-seL4 \
+        --tree rust-sel4 \
         --sel4-source seL4 \
         --scratch scratch
 
@@ -143,13 +143,13 @@ RUN --mount=source=Makefile,target=Makefile \
     RUSTUP_HOME=/mnt/rustup-home \
     CARGO_HOME=/mnt/cargo-home \
     make \
-        TREE=$(pwd)/rust-seL4 \
+        TREE=$(pwd)/rust-sel4 \
         WORKSPACE=/mnt/workspace \
         TARGET_DIR=/mnt/target
 
-RUN mv rust-seL4 /opt
+RUN mv rust-sel4 /opt
 
-ENV RUST_SEL4_ROOT=/opt/rust-seL4
+ENV RUST_SEL4_ROOT=/opt/rust-sel4
 
 ENV PATH=${RUST_SEL4_ROOT}/bin:$PATH
 

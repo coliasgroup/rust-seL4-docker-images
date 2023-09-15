@@ -2,7 +2,7 @@ id := rust-sel4
 
 TAG ?= $(id)
 
-SRC ?= https://github.com/coliasgroup/rust-seL4.git\#HEAD
+SRC ?= https://github.com/seL4/rust-sel4.git\#HEAD
 
 MOUNT_SRC ?=
 
